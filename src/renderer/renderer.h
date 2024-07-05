@@ -75,7 +75,7 @@ typedef struct Camera {
   mat4 projection; // Projection matrix, DEFAULT: Perspective
 } Camera;
 
-void SetCameraDefault3D(Camera *camera, unsigned int shaderProgram);
+void SetCameraDefault3D(Camera *camera);
 
 void PrepareCamForDraw(Camera *camera);
 

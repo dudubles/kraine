@@ -35,8 +35,8 @@ Description:
 #include "cglm/affine-pre.h"
 #include "glad/glad.h"
 #include "renderer.h"
-#include <cstring>
 #include <stdlib.h>
+#include <string.h>
 
 void DrawModel(Model *model) {
 
