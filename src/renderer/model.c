@@ -40,10 +40,16 @@ Description:
 
 void ModelMatrixUpdate(Model *model, unsigned int shader) {
 
-  glUseProgram(shader); // Just in case
+  // Get uniform location
+  int modelLoc = glGetUniformLocation(shader, "model");
+
+  // Debug uniform location in case of any errors
+  if (modelLoc < 0) {
+    printf("[ERROR] : Error while trying to get uniform of model");
+    return;
+  }
 
   // Update model transform matrix (transform)
-  int modelLoc = glGetUniformLocation(shader, "model");
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model->transform[0][0]);
 }
 

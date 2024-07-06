@@ -43,12 +43,26 @@ void CameraMatrixUpdate(Camera *camera, unsigned int shader) {
 
   glUseProgram(shader); // Just in case
 
-  // Update view transform matrix (its location)
+  // Get uniforms location
   int viewLoc = glGetUniformLocation(shader, "view");
+  int projLoc = glGetUniformLocation(shader, "projection");
+
+  // Debug uniform locations in case of any errors
+  if (viewLoc < 0) {
+    printf("[ERROR] : Error while trying to get uniform location of view");
+    return;
+  }
+
+  if (projLoc < 0) {
+    printf(
+        "[ERROR] : Error while trying to get uniform location of projection");
+    return;
+  }
+
+  // Update view transform matrix (its location)
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &camera->viewTransform[0][0]);
 
   // Update projection matrix
-  int projLoc = glGetUniformLocation(shader, "projection");
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, &camera->projection[0][0]);
 }
 
