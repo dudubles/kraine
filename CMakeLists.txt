@@ -17,7 +17,11 @@ add_executable(test
   ${PROJECT_SOURCE_DIR}/src/renderer/camera.c
   ${PROJECT_SOURCE_DIR}/src/utils/files.c
 )
-target_link_libraries(test ${PROJECT_SOURCE_DIR}/lib/libglfw3.a)
-target_link_libraries(test ${PROJECT_SOURCE_DIR}/lib/cglm.lib)
-target_link_libraries(test ${PROJECT_SOURCE_DIR}/lib/libassimp.dll.a)
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include/)
+
+target_link_libraries(test 
+  ${PROJECT_SOURCE_DIR}/lib/libglfw3.a 
+  ${PROJECT_SOURCE_DIR}/lib/cglm.lib
+  ${PROJECT_SOURCE_DIR}/lib/libufbx.a
+)
+

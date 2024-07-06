@@ -60,9 +60,9 @@ int main() {
     return -1;
   }
 
-  unsigned int shaderProgram =
-      ShaderFromFiles("c:/users/tiago/desktop/kraine/resource/vertex.glsl",
-                      "C:/Users/tiago/Desktop/Kraine/resource/fragment.glsl");
+  unsigned int shaderProgram = ShaderFromFiles(
+      "c:/users/tiago/desktop/kraine/resource/shader/vertex.glsl",
+      "C:/Users/tiago/Desktop/Kraine/resource/shader/fragment.glsl");
 
   unsigned int myTexture = LoadTexFromFile(
       (char *)"c:/users/tiago/desktop/kraine/resource/textures/wall.jpg");
