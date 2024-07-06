@@ -23,7 +23,7 @@
 */
 
 /*=================================================
-Path: renderer/utils.h
+Path: kraine/utils.h
 
 Date: 07/06/2024
 
