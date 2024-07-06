@@ -35,7 +35,7 @@ Description:
 #include "cglm/call.h"
 #include "cglm/mat4.h"
 #include "glad/glad.h"
-#include "renderer.h"
+#include "kraine/renderer.h"
 #include <stdlib.h>
 
 void ModelMatrixUpdate(Model *model, unsigned int shader) {

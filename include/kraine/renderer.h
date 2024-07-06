@@ -36,12 +36,6 @@ Description:
 
 #include "cglm/types.h"
 
-#ifndef DEF_KRAINE
-
-#define KRAINE_VERSION 002 // Version: 0.0.2
-
-#endif // !DEF_KRAINE
-
 #ifndef KRAINE_RENDERER
 
 /*

@@ -33,6 +33,7 @@ Description:
 =================================================*/
 
 #include "glad/glad.h"
+#include "kraine/renderer.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 

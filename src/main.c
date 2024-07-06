@@ -34,7 +34,7 @@ Description: This is just to test some shi
 
 #include <glad/glad.h>
 // Fuck you clangd
-#include "renderer/renderer.h"
+#include "kraine/renderer.h"
 #include <GLFW/glfw3.h>
 #include <cglm/call.h>
 #include <stdio.h>

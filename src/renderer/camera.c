@@ -37,7 +37,7 @@ Description:
 #include "cglm/types.h"
 #include "cglm/util.h"
 #include "glad/glad.h"
-#include "renderer.h"
+#include "kraine/renderer.h"
 
 void CameraMatrixUpdate(Camera *camera, unsigned int shader) {
 

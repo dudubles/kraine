@@ -15,6 +15,7 @@ add_executable(test
   ${PROJECT_SOURCE_DIR}/src/renderer/mesh.c
   ${PROJECT_SOURCE_DIR}/src/renderer/model.c
   ${PROJECT_SOURCE_DIR}/src/renderer/camera.c
+  ${PROJECT_SOURCE_DIR}/src/utils/files.c
 )
 target_link_libraries(test ${PROJECT_SOURCE_DIR}/lib/libglfw3.a)
 target_link_libraries(test ${PROJECT_SOURCE_DIR}/lib/cglm.lib)

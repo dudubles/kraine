@@ -33,7 +33,7 @@ Description:
 =================================================*/
 
 #include "glad/glad.h"
-#include "renderer.h"
+#include "kraine/renderer.h"
 
 void SetupGLBuffers(Mesh *mesh) {
   // FIXME: Uncomment EBO buffer when needed
