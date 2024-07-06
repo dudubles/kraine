@@ -38,7 +38,7 @@ Description:
 
 #ifndef DEF_KRAINE
 
-#define KRAINE_VERSION 001 // Version: 0.0.1
+#define KRAINE_VERSION 002 // Version: 0.0.2
 
 #endif // !DEF_KRAINE
 
@@ -97,7 +97,7 @@ typedef struct Model {
   mat4 transform; // Model space transform matrix (Move, rotate etc...)
 } Model;
 
-void UpdateModel(Model *model, unsigned int shader);
+void ModelMatrixUpdate(Model *model, unsigned int shader);
 
 void DrawModel(Model *model);
 
@@ -129,7 +129,7 @@ typedef struct Camera {
   mat4 projection; // Projection matrix (By default its in perspective for 3D)
 } Camera;
 
-void UpdateCamera(Camera *camera, unsigned int shader);
+void CameraMatrixUpdate(Camera *camera, unsigned int shader);
 
 Camera CreateCamera();
 

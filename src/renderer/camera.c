@@ -39,16 +39,15 @@ Description:
 #include "glad/glad.h"
 #include "renderer.h"
 
-void UpdateCamera(Camera *camera, unsigned int shader) {
+void CameraMatrixUpdate(Camera *camera, unsigned int shader) {
 
   glUseProgram(shader); // Just in case
 
-  // Update view transform (its location)
+  // Update view transform matrix (its location)
   int viewLoc = glGetUniformLocation(shader, "view");
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &camera->viewTransform[0][0]);
 
-  // Update projection wich is not really necessary in the Update function
-  // HACK: Read above
+  // Update projection matrix
   int projLoc = glGetUniformLocation(shader, "projection");
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, &camera->projection[0][0]);
 }

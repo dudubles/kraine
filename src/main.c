@@ -77,12 +77,12 @@ int main() {
       1); // enably vsync so it doesnt take up 50% cpu (also smooth draw calls)
 
   while (!glfwWindowShouldClose(window)) {
-    UpdateCamera(&cam, shaderProgram);
+    CameraMatrixUpdate(&cam, shaderProgram);
 
     glm_rotate(cubex.transform, 0.03f * glm_rad(50.0f),
                (vec3){0.5f, 1.0f, 0.0f});
 
-    UpdateModel(&cubex, shaderProgram);
+    ModelMatrixUpdate(&cubex, shaderProgram);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

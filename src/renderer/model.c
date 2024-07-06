@@ -38,11 +38,11 @@ Description:
 #include "renderer.h"
 #include <stdlib.h>
 
-void UpdateModel(Model *model, unsigned int shader) {
+void ModelMatrixUpdate(Model *model, unsigned int shader) {
 
   glUseProgram(shader); // Just in case
 
-  // Update model uniforms (transform)
+  // Update model transform matrix (transform)
   int modelLoc = glGetUniformLocation(shader, "model");
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model->transform[0][0]);
 }
