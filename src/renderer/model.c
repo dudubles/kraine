@@ -33,10 +33,19 @@ Description:
 =================================================*/
 
 #include "cglm/affine-pre.h"
+#include "cglm/mat4.h"
 #include "glad/glad.h"
 #include "renderer.h"
 #include <stdlib.h>
-#include <string.h>
+
+void UpdateModel(Model *model, unsigned int shader) {
+
+  glUseProgram(shader); // Just in case
+
+  // Update model uniforms (transform)
+  int modelLoc = glGetUniformLocation(shader, "model");
+  glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model->transform[0][0]);
+}
 
 void DrawModel(Model *model) {
 
@@ -58,11 +67,20 @@ Vertex NewVertex(float x, float y, float z, float texC1, float texC2) {
   return ret;
 }
 
+Model CreateModel() {
+  // Initialize model and its values
+  Model retModel;
+  glm_mat4_identity(retModel.transform);
+
+  return retModel;
+}
+
 Model CreateCube() {
   // Create cube mesh
   Mesh retMesh;
   retMesh.vertList = (Vertex *)malloc(36 * sizeof(Vertex));
 
+  // Set cube mesh vertices
   retMesh.vertList[0] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f);
   retMesh.vertList[1] = NewVertex(0.5f, -0.5f, -0.5f, 1.0f, 0.0f);
   retMesh.vertList[2] = NewVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
@@ -110,18 +128,11 @@ Model CreateCube() {
 
   // Setup model
 
-  Model retModel;
+  Model retModel = CreateModel();
   retModel.mesh = retMesh;
 
   // Set default coordinates (0,0,0)
-  mat4 defaultLocation = {
-      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  };
-  glm_translate(defaultLocation, (vec3){0.0f, 0.0f, 0.0f});
-
-  memcpy(retModel.transform.modelSpace, defaultLocation,
-         sizeof(defaultLocation));
+  glm_translate(retModel.transform, (vec3){0.0f, 0.0f, 0.0f});
 
   return retModel;
 }

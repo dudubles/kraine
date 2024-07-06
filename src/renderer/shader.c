@@ -33,6 +33,7 @@ Description:
 =================================================*/
 
 #include "glad/glad.h"
+#include "renderer.h"
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +81,7 @@ char *ReadFile(const char *path) {
   return fileContent;
 }
 
-unsigned int LoadShaders(const char *vPath, const char *fPath) {
+unsigned int ShaderFromFiles(const char *vPath, const char *fPath) {
   printf("[DEBUG] : Loading vertex shader with path: %s\n", vPath);
   printf("[DEBUG] : Loading fragment shader with path: %s\n", fPath);
 

@@ -36,6 +36,7 @@ Description: This is just to test some shi
 // Fuck you clangd
 #include "renderer/renderer.h"
 #include <GLFW/glfw3.h>
+#include <cglm/call.h>
 #include <stdio.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -60,52 +61,33 @@ int main() {
   }
 
   unsigned int shaderProgram =
-      LoadShaders("c:/users/tiago/desktop/kraine/resource/vertex.glsl",
-                  "C:/Users/tiago/Desktop/Kraine/resource/fragment.glsl");
+      ShaderFromFiles("c:/users/tiago/desktop/kraine/resource/vertex.glsl",
+                      "C:/Users/tiago/Desktop/Kraine/resource/fragment.glsl");
 
   unsigned int myTexture = LoadTexFromFile(
       (char *)"c:/users/tiago/desktop/kraine/resource/textures/wall.jpg");
 
-  /* TEST:  float vertices[] = {
-        0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, // top left
-    };
-    unsigned int indices[] = {0, 1, 3, 1, 2, 3};
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);*/
-
-  /* TEST:  glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void
-    *)0); glEnableVertexAttribArray(0); glVertexAttribPointer(1, 2, GL_FLOAT,
-    GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);*/
-
   Model cubex = CreateCube();
+  Camera cam = CreateCamera();
+
+  glUseProgram(shaderProgram);
+
+  glEnable(GL_DEPTH_TEST); // Enable depth
+  glfwSwapInterval(
+      1); // enably vsync so it doesnt take up 50% cpu (also smooth draw calls)
 
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.5, 0.5, 0.5, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    UpdateCamera(&cam, shaderProgram);
+
+    glm_rotate(cubex.transform, 0.03f * glm_rad(50.0f),
+               (vec3){0.5f, 1.0f, 0.0f});
+
+    UpdateModel(&cubex, shaderProgram);
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindTexture(GL_TEXTURE_2D, myTexture);
-    glUseProgram(shaderProgram);
-    //    DrawMesh(&cubex);
-    //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     DrawModel(&cubex);
     glfwSwapBuffers(window);
     glfwPollEvents();

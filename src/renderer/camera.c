@@ -32,25 +32,41 @@ Author: Dudubles
 Description:
 =================================================*/
 
-#include "cglm/affine-pre.h"
+#include "cglm/call.h"
 #include "cglm/cam.h"
 #include "cglm/types.h"
 #include "cglm/util.h"
+#include "glad/glad.h"
 #include "renderer.h"
-#include <string.h>
 
-void SetCameraDefault3D(Camera *camera) {
+void UpdateCamera(Camera *camera, unsigned int shader) {
 
-  // Setup the default view matrix (default coordinates)
-  mat4 defaultView = {
-      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  };
-  glm_translate(defaultView, (vec3){0.0f, 0.0f, -3.0f});
+  glUseProgram(shader); // Just in case
 
-  memcpy(camera->viewSpace, defaultView, sizeof(defaultView));
+  // Update view transform (its location)
+  int viewLoc = glGetUniformLocation(shader, "view");
+  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &camera->viewTransform[0][0]);
 
-  // By default we are gonna set the perspective matrix
-  glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f,
-                  camera->projection);
+  // Update projection wich is not really necessary in the Update function
+  // HACK: Read above
+  int projLoc = glGetUniformLocation(shader, "projection");
+  glUniformMatrix4fv(projLoc, 1, GL_FALSE, &camera->projection[0][0]);
+}
+
+Camera CreateCamera() {
+
+  // Initialize camera and its values
+  Camera retcam;
+  glm_mat4_identity(retcam.projection);
+  glm_mat4_identity(retcam.viewTransform);
+
+  // Setup camera default projection
+  glm_perspective(glm_rad(45.0f), (float)1280 / (float)720, 0.1f, 100.0f,
+                  retcam.projection); // Setting up with 45.0 FOV and aspect
+                                      // ratio of 16:9 (1280 / 720)
+
+  // Setup camera default location (position: 0,0,-3)
+  glm_translate(retcam.viewTransform, (vec3){0.0f, 0.0f, -3.0f});
+
+  return retcam;
 }

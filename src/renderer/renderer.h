@@ -36,7 +36,31 @@ Description:
 
 #include "cglm/types.h"
 
+#ifndef DEF_KRAINE
+
+#define KRAINE_VERSION 001 // Version: 0.0.1
+
+#endif // !DEF_KRAINE
+
 #ifndef KRAINE_RENDERER
+
+/*
+==============================================================================
+
+Shaders
+
+==============================================================================
+*/
+
+unsigned int ShaderFromFiles(const char *vPath, const char *fPath);
+
+/*
+==============================================================================
+
+Mesh & vertices
+
+==============================================================================
+*/
 
 typedef struct Vertex {
 
@@ -57,36 +81,58 @@ typedef struct Mesh {
   unsigned int EBO;
 } Mesh;
 
-typedef struct Transform {
+void SetupGLBuffers(Mesh *mesh);
 
-  mat4 modelSpace; // Model space (coords of the model)
-} Transform;
+/*
+==============================================================================
+
+Models
+
+==============================================================================
+*/
 
 typedef struct Model {
 
   Mesh mesh;
-  Transform transform;
+  mat4 transform; // Model space transform matrix (Move, rotate etc...)
 } Model;
 
-typedef struct Camera {
-
-  unsigned int bindedShader;
-  mat4 viewSpace;  // Camera coordinates
-  mat4 projection; // Projection matrix, DEFAULT: Perspective
-} Camera;
-
-void SetCameraDefault3D(Camera *camera);
-
-void PrepareCamForDraw(Camera *camera);
+void UpdateModel(Model *model, unsigned int shader);
 
 void DrawModel(Model *model);
 
-void SetupGLBuffers(Mesh *mesh);
+Model CreateModel();
 
 Model CreateCube();
 
+/*
+==============================================================================
+
+Textures
+
+==============================================================================
+*/
+
 unsigned int LoadTexFromFile(char *path);
 
-unsigned int LoadShaders(const char *vPath, const char *fPath);
+/*
+==============================================================================
+
+Camera
+
+==============================================================================
+*/
+
+typedef struct Camera {
+
+  mat4 viewTransform; // Camera space transform matrix (Move, rotate etc...)
+  mat4 projection; // Projection matrix (By default its in perspective for 3D)
+} Camera;
+
+void UpdateCamera(Camera *camera, unsigned int shader);
+
+Camera CreateCamera();
+
+//============================================================================
 
 #endif // !KRAINE_RENDERER
