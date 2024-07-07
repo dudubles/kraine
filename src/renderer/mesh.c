@@ -97,7 +97,6 @@ Vertex CreateVertex(float x, float y, float z, float texC1, float texC2) {
 }
 
 Mesh FbxToMesh(ufbx_mesh *mesh) {
-
   // Init mesh
   Mesh retMesh;
 

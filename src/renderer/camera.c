@@ -52,17 +52,8 @@ Camera CreateCamera() {
                   retcam.projection); // Setting up with 45.0 FOV and aspect
                                       // ratio of 16:9 (1280 / 720)
 
-  // Setup camera default location (position: 0,0,-3)
-  // FIXME: Maybe something is wrong here... but what is it???
-
-  vec3 cameraPos = {0.0f, 0.0f, -30.0f};
-  vec3 cameraFront = {0.0f, 0.0f, -1.0f};
-  vec3 cameraUp = {0.0f, 1.0f, 0.0f};
-
-  vec3 centerRes;
-  glm_vec3_add(cameraPos, cameraFront, centerRes);
-
-  glm_lookat(cameraPos, centerRes, cameraUp, retcam.view);
+  // Setup camera default location (position: 0,0,0)
+  glm_translate(retcam.view, (vec3){0.0f, 0.0f, 0.0f});
 
   return retcam;
 }

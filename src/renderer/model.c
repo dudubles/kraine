@@ -58,6 +58,7 @@ Model CreateModel() {
 }
 
 Model LoadModelFBX(const char *path) {
+  printf("[DEBUG] : Loading 3D FBX Model from path: %s\n", path);
 
   // Load ufbx with default options
   ufbx_load_opts opts = {0};
