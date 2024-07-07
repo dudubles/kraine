@@ -32,45 +32,21 @@ Author: Dudubles
 Description:
 =================================================*/
 
+#include "cglm/affine.h"
 #include "cglm/call.h"
 #include "cglm/mat4.h"
 #include "glad/glad.h"
 #include "kraine/renderer.h"
+#include "ufbx.h"
 #include <stdlib.h>
-
-void ModelMatrixUpdate(Model *model, unsigned int shader) {
-
-  // Get uniform location
-  int modelLoc = glGetUniformLocation(shader, "model");
-
-  // Debug uniform location in case of any errors
-  if (modelLoc < 0) {
-    printf("[ERROR] : Error while trying to get uniform of model");
-    return;
-  }
-
-  // Update model transform matrix (transform)
-  glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model->transform[0][0]);
-}
 
 void DrawModel(Model *model) {
 
-  glBindVertexArray(model->mesh.VAO);
-
-  glDrawArrays(GL_TRIANGLES, 0, model->mesh.vertListSize);
-}
-
-// This shit is just for testing (or is it?)
-Vertex NewVertex(float x, float y, float z, float texC1, float texC2) {
-  Vertex ret;
-  ret.position[0] = x;
-  ret.position[1] = y;
-  ret.position[2] = z;
-
-  ret.texCoord[0] = texC1;
-  ret.texCoord[1] = texC2;
-
-  return ret;
+  // Draw each mesh
+  for (size_t i = 0; i < model->meshListCount; i++) {
+    Mesh *mesh = &model->meshList[0];
+    DrawMesh(mesh);
+  }
 }
 
 Model CreateModel() {
@@ -81,64 +57,127 @@ Model CreateModel() {
   return retModel;
 }
 
+Model LoadModelFBX(const char *path) {
+
+  // Load ufbx with default options
+  ufbx_load_opts opts = {0};
+  ufbx_error error;
+
+  // Load file
+  ufbx_scene *scene = ufbx_load_file(path, &opts, &error);
+
+  // Debug any errors
+  if (!scene) {
+    printf("[ERROR] : Error while trying to load fbx file -> %s\n",
+           error.description.data);
+    exit(1);
+  }
+
+  // Create model for return
+  Model retModel = CreateModel();
+
+  // Count number of meshes
+  int meshCount = 0;
+  for (size_t i = 0; i < scene->nodes.count; i++) {
+    ufbx_node *node = scene->nodes.data[i];
+    if (node->is_root)
+      continue;
+
+    if (node->mesh) {
+      meshCount++;
+    }
+  }
+
+  // Allocate number of meshes
+  retModel.meshList = (Mesh *)malloc(meshCount * sizeof(Mesh));
+  retModel.meshListCount = meshCount;
+
+  meshCount = 0;
+  for (size_t i = 0; i < scene->nodes.count; i++) {
+    ufbx_node *node = scene->nodes.data[i];
+    if (node->is_root)
+      continue;
+
+    // Loop through each mesh
+    if (node->mesh) {
+      // Convert fbx mesh to kraine mesh
+      Mesh mesh = FbxToMesh(node->mesh);
+      retModel.meshList[meshCount] = mesh;
+      meshCount++;
+    }
+  }
+
+  // Set default coordinates (0,0,3)
+  // FIXME: TF?? read below
+  glm_translate(retModel.transform, (vec3){0.0f, 0.0f, -43.0f});
+
+  // Set its default size (1,1,1)
+  glm_scale(retModel.transform, (vec3){1.0f, 1.0f, 1.0f});
+
+  return retModel;
+}
+
 Model CreateCube() {
   // Create cube mesh
   Mesh retMesh;
   retMesh.vertList = (Vertex *)malloc(36 * sizeof(Vertex));
 
   // Set cube mesh vertices
-  retMesh.vertList[0] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f);
-  retMesh.vertList[1] = NewVertex(0.5f, -0.5f, -0.5f, 1.0f, 0.0f);
-  retMesh.vertList[2] = NewVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[3] = NewVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[4] = NewVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[5] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f);
+  retMesh.vertList[0] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f);
+  retMesh.vertList[1] = CreateVertex(0.5f, -0.5f, -0.5f, 1.0f, 0.0f);
+  retMesh.vertList[2] = CreateVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[3] = CreateVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[4] = CreateVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[5] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f);
 
-  retMesh.vertList[6] = NewVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
-  retMesh.vertList[7] = NewVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[8] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 1.0f);
-  retMesh.vertList[9] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 1.0f);
-  retMesh.vertList[10] = NewVertex(-0.5f, 0.5f, 0.5f, 0.0f, 1.0f);
-  retMesh.vertList[11] = NewVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[6] = CreateVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[7] = CreateVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[8] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 1.0f);
+  retMesh.vertList[9] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 1.0f);
+  retMesh.vertList[10] = CreateVertex(-0.5f, 0.5f, 0.5f, 0.0f, 1.0f);
+  retMesh.vertList[11] = CreateVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
 
-  retMesh.vertList[12] = NewVertex(-0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[13] = NewVertex(-0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[14] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[15] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[16] = NewVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
-  retMesh.vertList[17] = NewVertex(-0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[12] = CreateVertex(-0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[13] = CreateVertex(-0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[14] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[15] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[16] = CreateVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[17] = CreateVertex(-0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
 
-  retMesh.vertList[18] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[19] = NewVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[20] = NewVertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[21] = NewVertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[22] = NewVertex(0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
-  retMesh.vertList[23] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[18] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[19] = CreateVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[20] = CreateVertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[21] = CreateVertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[22] = CreateVertex(0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[23] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
 
-  retMesh.vertList[24] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[25] = NewVertex(0.5f, -0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[26] = NewVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[27] = NewVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[28] = NewVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
-  retMesh.vertList[29] = NewVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[24] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[25] = CreateVertex(0.5f, -0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[26] = CreateVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[27] = CreateVertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[28] = CreateVertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[29] = CreateVertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f);
 
-  retMesh.vertList[30] = NewVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
-  retMesh.vertList[31] = NewVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
-  retMesh.vertList[32] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[33] = NewVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
-  retMesh.vertList[34] = NewVertex(-0.5f, 0.5f, 0.5f, 0.0f, 0.0f);
-  retMesh.vertList[35] = NewVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[30] = CreateVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
+  retMesh.vertList[31] = CreateVertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f);
+  retMesh.vertList[32] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[33] = CreateVertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f);
+  retMesh.vertList[34] = CreateVertex(-0.5f, 0.5f, 0.5f, 0.0f, 0.0f);
+  retMesh.vertList[35] = CreateVertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f);
 
-  retMesh.vertListSize = 36;
+  retMesh.vertListCount = 36;
   SetupGLBuffers(&retMesh);
 
   // Setup model
-
   Model retModel = CreateModel();
-  retModel.mesh = retMesh;
+  retModel.meshList[0] = retMesh;
+  retModel.meshListCount = 1;
 
   // Set default coordinates (0,0,0)
   glm_translate(retModel.transform, (vec3){0.0f, 0.0f, 0.0f});
+
+  // Set its default size (1,1,1)
+  glm_scale(retModel.transform, (vec3){1.0f, 1.0f, 1.0f});
 
   return retModel;
 }

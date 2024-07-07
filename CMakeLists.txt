@@ -15,6 +15,7 @@ add_executable(test
   ${PROJECT_SOURCE_DIR}/src/renderer/mesh.c
   ${PROJECT_SOURCE_DIR}/src/renderer/model.c
   ${PROJECT_SOURCE_DIR}/src/renderer/camera.c
+  ${PROJECT_SOURCE_DIR}/src/renderer/coords.c
   ${PROJECT_SOURCE_DIR}/src/utils/files.c
 )
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include/)

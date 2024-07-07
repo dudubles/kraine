@@ -36,42 +36,16 @@ Description:
 #include "cglm/cam.h"
 #include "cglm/types.h"
 #include "cglm/util.h"
+#include "cglm/vec3.h"
 #include "glad/glad.h"
 #include "kraine/renderer.h"
-
-void CameraMatrixUpdate(Camera *camera, unsigned int shader) {
-
-  glUseProgram(shader); // Just in case
-
-  // Get uniforms location
-  int viewLoc = glGetUniformLocation(shader, "view");
-  int projLoc = glGetUniformLocation(shader, "projection");
-
-  // Debug uniform locations in case of any errors
-  if (viewLoc < 0) {
-    printf("[ERROR] : Error while trying to get uniform location of view");
-    return;
-  }
-
-  if (projLoc < 0) {
-    printf(
-        "[ERROR] : Error while trying to get uniform location of projection");
-    return;
-  }
-
-  // Update view transform matrix (its location)
-  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &camera->viewTransform[0][0]);
-
-  // Update projection matrix
-  glUniformMatrix4fv(projLoc, 1, GL_FALSE, &camera->projection[0][0]);
-}
 
 Camera CreateCamera() {
 
   // Initialize camera and its values
   Camera retcam;
   glm_mat4_identity(retcam.projection);
-  glm_mat4_identity(retcam.viewTransform);
+  glm_mat4_identity(retcam.view);
 
   // Setup camera default projection
   glm_perspective(glm_rad(45.0f), (float)1280 / (float)720, 0.1f, 100.0f,
@@ -79,7 +53,16 @@ Camera CreateCamera() {
                                       // ratio of 16:9 (1280 / 720)
 
   // Setup camera default location (position: 0,0,-3)
-  glm_translate(retcam.viewTransform, (vec3){0.0f, 0.0f, -3.0f});
+  // FIXME: Maybe something is wrong here... but what is it???
+
+  vec3 cameraPos = {0.0f, 0.0f, -30.0f};
+  vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+  vec3 cameraUp = {0.0f, 1.0f, 0.0f};
+
+  vec3 centerRes;
+  glm_vec3_add(cameraPos, cameraFront, centerRes);
+
+  glm_lookat(cameraPos, centerRes, cameraUp, retcam.view);
 
   return retcam;
 }

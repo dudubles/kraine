@@ -35,18 +35,9 @@ Description:
 #pragma once
 
 #include "cglm/types.h"
+#include "ufbx.h"
 
 #ifndef KRAINE_RENDERER
-
-/*
-==============================================================================
-
-Shaders
-
-==============================================================================
-*/
-
-unsigned int ShaderFromFiles(const char *vPath, const char *fPath);
 
 /*
 ==============================================================================
@@ -66,8 +57,9 @@ typedef struct Mesh {
 
   // Dynamic arrays
   Vertex *vertList;
-  int vertListSize;
+  int vertListCount;
   unsigned int *indicesList;
+  int indicesListCount;
 
   // Buffers and their IDs
   unsigned int VAO;
@@ -76,6 +68,13 @@ typedef struct Mesh {
 } Mesh;
 
 void SetupGLBuffers(Mesh *mesh);
+
+void DrawMesh(Mesh *mesh);
+
+Vertex CreateVertex(float x, float y, float z, float texC1, float texC2);
+
+// Converts UFBX mesh to Kraine Mesh
+Mesh FbxToMesh(ufbx_mesh *mesh);
 
 /*
 ==============================================================================
@@ -87,13 +86,16 @@ Models
 
 typedef struct Model {
 
-  Mesh mesh;
+  // Dynamic arrays
+  Mesh *meshList;
+  int meshListCount;
+
   mat4 transform; // Model space transform matrix (Move, rotate etc...)
 } Model;
 
-void ModelMatrixUpdate(Model *model, unsigned int shader);
-
 void DrawModel(Model *model);
+
+Model LoadModelFBX(const char *path);
 
 Model CreateModel();
 
@@ -119,13 +121,33 @@ Camera
 
 typedef struct Camera {
 
-  mat4 viewTransform; // Camera space transform matrix (Move, rotate etc...)
+  mat4 view;       // Camera space transform matrix (Move, rotate etc...)
   mat4 projection; // Projection matrix (By default its in perspective for 3D)
 } Camera;
 
-void CameraMatrixUpdate(Camera *camera, unsigned int shader);
-
 Camera CreateCamera();
+
+/*
+==============================================================================
+
+Shaders
+
+==============================================================================
+*/
+
+unsigned int ShaderFromFiles(const char *vPath, const char *fPath);
+
+/*
+==============================================================================
+
+Coordinates System
+
+==============================================================================
+*/
+
+mat4 *CalculateMVP(Camera *camera, Model *model);
+
+void UploadMVP(mat4 *pvm, unsigned int shader);
 
 //============================================================================
 

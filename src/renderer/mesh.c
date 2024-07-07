@@ -34,27 +34,42 @@ Description:
 
 #include "glad/glad.h"
 #include "kraine/renderer.h"
+#include "stdio.h"
+#include "ufbx.h"
+#include <stdlib.h>
+
+void DrawMesh(Mesh *mesh) {
+
+  // Debugging
+  if (mesh->vertListCount <= 0) {
+    printf("[ERROR] : Trying to draw mesh with 0 vertices result ignored\n");
+    return;
+  }
+
+  glBindVertexArray(mesh->VAO);
+  glDrawElements(GL_TRIANGLES, mesh->indicesListCount * sizeof(unsigned int),
+                 GL_UNSIGNED_INT, 0);
+}
 
 void SetupGLBuffers(Mesh *mesh) {
-  // FIXME: Uncomment EBO buffer when needed
-
   // Generate VAO (Just wraps VBO and EBO in one)
   glGenVertexArrays(1, &mesh->VAO);
 
   // Generate buffers that opengl will read
   glGenBuffers(1, &mesh->VBO);
-  //  glGenBuffers(1, &mesh->EBO);
+  glGenBuffers(1, &mesh->EBO);
 
   // Insert data inside buffers
   glBindVertexArray(mesh->VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO);
 
-  glBufferData(GL_ARRAY_BUFFER, mesh->vertListSize * sizeof(Vertex),
+  glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO);
+  glBufferData(GL_ARRAY_BUFFER, mesh->vertListCount * sizeof(Vertex),
                &mesh->vertList[0], GL_STATIC_DRAW);
-  /*
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->EBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(mesh->indicesList),
-                 &mesh->indicesList[0], GL_STATIC_DRAW);*/
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               mesh->indicesListCount * sizeof(unsigned int),
+               &mesh->indicesList[0], GL_STATIC_DRAW);
 
   // | LAYOUT 0 | Vertices positions
   glEnableVertexAttribArray(0);
@@ -67,4 +82,49 @@ void SetupGLBuffers(Mesh *mesh) {
 
   // Just in case
   glBindVertexArray(0);
+}
+
+Vertex CreateVertex(float x, float y, float z, float texC1, float texC2) {
+  Vertex ret;
+  ret.position[0] = x;
+  ret.position[1] = y;
+  ret.position[2] = z;
+
+  ret.texCoord[0] = texC1;
+  ret.texCoord[1] = texC2;
+
+  return ret;
+}
+
+Mesh FbxToMesh(ufbx_mesh *mesh) {
+
+  // Init mesh
+  Mesh retMesh;
+
+  // Initialize dynamic arrays
+  retMesh.vertList = (Vertex *)malloc(mesh->vertices.count * sizeof(Vertex));
+  retMesh.vertListCount = mesh->vertices.count;
+  retMesh.indicesList =
+      (unsigned int *)malloc(mesh->vertex_indices.count * sizeof(unsigned int));
+  retMesh.indicesListCount = mesh->vertex_indices.count;
+
+  // Transform each vertex
+  for (size_t i = 0; i < mesh->vertices.count; i++) {
+
+    // Transform vertex
+    ufbx_vec3 curVertex = mesh->vertices.data[i];
+    Vertex transVertex = CreateVertex((float)curVertex.x, (float)curVertex.y,
+                                      (float)curVertex.z, 1.0f, 1.0f);
+    // Assign vertex
+    retMesh.vertList[i] = transVertex;
+  }
+
+  // Add indices
+  for (size_t i = 0; i < mesh->vertex_indices.count; i++) {
+    retMesh.indicesList[i] = mesh->vertex_indices.data[i];
+  }
+
+  SetupGLBuffers(&retMesh);
+
+  return retMesh;
 }

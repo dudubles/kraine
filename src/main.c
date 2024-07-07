@@ -67,7 +67,10 @@ int main() {
   unsigned int myTexture = LoadTexFromFile(
       (char *)"c:/users/tiago/desktop/kraine/resource/textures/wall.jpg");
 
-  Model cubex = CreateCube();
+  Model cubex =
+      LoadModelFBX("c:/users/tiago/desktop/kraine/resource/assets/sample.fbx");
+
+  // Model cubex = CreateCube();
   Camera cam = CreateCamera();
 
   glUseProgram(shaderProgram);
@@ -77,12 +80,13 @@ int main() {
       1); // enably vsync so it doesnt take up 50% cpu (also smooth draw calls)
 
   while (!glfwWindowShouldClose(window)) {
-    CameraMatrixUpdate(&cam, shaderProgram);
 
     glm_rotate(cubex.transform, 0.03f * glm_rad(50.0f),
                (vec3){0.5f, 1.0f, 0.0f});
 
-    ModelMatrixUpdate(&cubex, shaderProgram);
+    mat4 *mvp = CalculateMVP(&cam, &cubex);
+    UploadMVP(mvp, shaderProgram);
+    free(mvp);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
