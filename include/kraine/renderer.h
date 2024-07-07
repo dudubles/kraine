@@ -145,7 +145,7 @@ Coordinates System
 ==============================================================================
 */
 
-mat4 *CalculateMVP(Camera *camera, Model *model);
+void CalculateMVP(Camera *camera, Model *model, mat4 *dest);
 
 void UploadMVP(mat4 *pvm, unsigned int shader);
 

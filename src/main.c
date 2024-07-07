@@ -79,14 +79,17 @@ int main() {
   glfwSwapInterval(
       1); // enably vsync so it doesnt take up 50% cpu (also smooth draw calls)
 
+  float scale = 8.1f;
+  glm_scale(cubex.transform, (vec3){scale, scale, scale});
+
+  mat4 mvp;
   while (!glfwWindowShouldClose(window)) {
 
     glm_rotate(cubex.transform, 0.03f * glm_rad(50.0f),
                (vec3){0.5f, 1.0f, 0.0f});
 
-    mat4 *mvp = CalculateMVP(&cam, &cubex);
-    UploadMVP(mvp, shaderProgram);
-    free(mvp);
+    CalculateMVP(&cam, &cubex, &mvp);
+    UploadMVP(&mvp, shaderProgram);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
