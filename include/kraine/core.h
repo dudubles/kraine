@@ -114,5 +114,4 @@ Game logic
 void GameInit(const char *title, int width, int height);
 
 //============================================================================
-
 #endif // !KRAINE_CORE
