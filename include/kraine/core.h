@@ -25,13 +25,94 @@
 /*=================================================
 Path: kraine/core.h
 
-Date: 07/03/2024
+Date: 07/07/2024
 
 Author: Dudubles
 
 Description:
 =================================================*/
 
+#include "kraine/renderer.h"
+
 #ifndef KRAINE_CORE
+
+/*
+==============================================================================
+
+Transform Components
+
+==============================================================================
+*/
+
+typedef struct Vector3 {
+
+  // Properties
+  float x, y, z;
+
+} Vector3;
+
+typedef struct Transform {
+
+  // Properties
+  Vector3 position;
+  Vector3 rotation;
+  Vector3 scale;
+
+} Transform;
+
+/*
+==============================================================================
+
+Game Objects
+
+==============================================================================
+*/
+
+typedef struct GameObject {
+
+  // Components
+  Model *model;
+  Transform *transform;
+
+} GameObject;
+
+void UpdateGameObject(GameObject *object);
+
+void DestroyGameObject();
+
+/*
+==============================================================================
+
+Game Camera
+
+==============================================================================
+*/
+
+#define KRAINE_GAMECAMERA_PERSPECTIVE 0
+
+typedef struct GameCamera {
+
+  // Components
+  Camera *renderCamera;
+  Transform *transform;
+
+  // Properties
+  unsigned int projection;
+
+} GameCamera;
+
+void DestroyCamera();
+
+/*
+==============================================================================
+
+Game logic
+
+==============================================================================
+*/
+
+void GameInit(const char *title, int width, int height);
+
+//============================================================================
 
 #endif // !KRAINE_CORE

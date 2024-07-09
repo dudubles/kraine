@@ -70,7 +70,9 @@ int main() {
   Model cubex =
       LoadModelFBX("c:/users/tiago/desktop/kraine/resource/assets/sample.fbx");
 
-  // Model cubex = CreateCube();
+  Model cubex2 =
+      LoadModelFBX("c:/users/tiago/desktop/kraine/resource/assets/sample.fbx");
+
   Camera cam = CreateCamera();
 
   glUseProgram(shaderProgram);
@@ -82,20 +84,30 @@ int main() {
   float scale = 8.1f;
   glm_scale(cubex.transform, (vec3){scale, scale, scale});
 
+  glm_scale(cubex2.transform, (vec3){scale, scale, scale});
+
+  glm_rotate(cubex.transform, glm_rad(-180.0f), (vec3){0.0f, 1.0f, 1.0f});
+
   mat4 mvp;
   while (!glfwWindowShouldClose(window)) {
-
-    glm_rotate(cubex.transform, 0.03f * glm_rad(50.0f),
-               (vec3){0.5f, 1.0f, 0.0f});
+    glm_rotate(cubex.transform, glm_rad(0.03f * 50.0f),
+               (vec3){0.0f, 0.0f, 1.0f});
 
     CalculateMVP(&cam, &cubex, &mvp);
     UploadMVP(&mvp, shaderProgram);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindTexture(GL_TEXTURE_2D, myTexture);
+    CalculateMVP(&cam, &cubex, &mvp);
+    UploadMVP(&mvp, shaderProgram);
     DrawModel(&cubex);
+
+    CalculateMVP(&cam, &cubex2, &mvp);
+    UploadMVP(&mvp, shaderProgram);
+    DrawModel(&cubex2);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }

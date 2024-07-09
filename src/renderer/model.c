@@ -71,7 +71,8 @@ Model LoadModelFBX(const char *path) {
   if (!scene) {
     printf("[ERROR] : Error while trying to load fbx file -> %s\n",
            error.description.data);
-    exit(1);
+    Model error;
+    return error;
   }
 
   // Create model for return

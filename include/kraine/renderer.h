@@ -99,8 +99,6 @@ Model LoadModelFBX(const char *path);
 
 Model CreateModel();
 
-Model CreateCube();
-
 /*
 ==============================================================================
 
