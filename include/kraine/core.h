@@ -60,6 +60,8 @@ typedef struct Transform {
 
 } Transform;
 
+Transform *TemplateTransform(int x, int y, int z);
+
 /*
 ==============================================================================
 
@@ -68,17 +70,29 @@ Game Objects
 ==============================================================================
 */
 
+#define GAMEOBJECT_CUSTOM 0
+#define GAMEOBJECT_3D 1
+
 typedef struct GameObject {
 
   // Components
   Model *model;
   Transform *transform;
 
+  // Properties
+  unsigned int type;
+
 } GameObject;
+
+GameObject *CreateGameObject(unsigned int type);
+
+GameObject *GameObject3D(const char *path);
+
+void UpdateTransform(GameObject *object); // Defined in transform.c
 
 void UpdateGameObject(GameObject *object);
 
-void DestroyGameObject();
+void DestroyGameObject(GameObject *object);
 
 /*
 ==============================================================================
@@ -88,7 +102,7 @@ Game Camera
 ==============================================================================
 */
 
-#define KRAINE_GAMECAMERA_PERSPECTIVE 0
+#define GAMECAMERA_PERSPECTIVE 0
 
 typedef struct GameCamera {
 
@@ -101,7 +115,34 @@ typedef struct GameCamera {
 
 } GameCamera;
 
-void DestroyCamera();
+GameCamera *CreateGameCamera(unsigned int projection);
+
+void UpdateGameCamera(GameCamera *camera);
+
+void DestroyGameCamera(GameCamera *camera);
+
+/*
+==============================================================================
+
+Scene
+
+==============================================================================
+*/
+
+typedef struct Scene {
+
+  // Properties
+
+  GameCamera *bindedCamera;
+
+  // Dynamic arrays
+
+  GameObject *gameObjectsList;
+  int gameObjectsIndex;
+
+} Scene;
+
+void AddToScene(GameObject *gameObject);
 
 /*
 ==============================================================================
@@ -114,4 +155,5 @@ Game logic
 void GameInit(const char *title, int width, int height);
 
 //============================================================================
+
 #endif // !KRAINE_CORE

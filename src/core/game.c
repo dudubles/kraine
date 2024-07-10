@@ -48,7 +48,7 @@ Typedefs & vars
 ==============================================================================
 */
 
-int initialized = 0;
+unsigned int initialized = 0;
 
 typedef void (*callback)(void);
 
@@ -62,25 +62,22 @@ Bindings
 
 unsigned int bindedShader;
 
-GameCamera *bindedCamera;
+Scene *bindedScene;
 
 /*
 ==============================================================================
 
-Game dinamyc arrays
+Gamedev control (callbacks)
 
 ==============================================================================
 */
-
-GameObject *gameObjectsList;
-int gameObjectsIndex;
 
 callback *onUpdateCallbackList;
 int onUpdateCallbackIndex;
 
 //============================================================================
 
-void AutoResizeCallback(GLFWwindow *window, int width, int height);
+void AutoResize(GLFWwindow *window, int width, int height);
 
 void *GameThread(void *windowIn) {
 
@@ -93,13 +90,18 @@ void *GameThread(void *windowIn) {
       onUpdateCallbackList[i]();
     }
 
+    // Check if scene can be drawn
+    if (bindedScene->bindedCamera == NULL) {
+      continue;
+    }
+
     // Clear screen and then update & draw each gameobject using the binded
     // camera & shaders
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (size_t i = 0; i < gameObjectsIndex; i++) {
-      GameObject *gameObject = &gameObjectsList[i];
+    for (size_t i = 0; i < bindedScene->gameObjectsIndex; i++) {
+      GameObject *gameObject = &bindedScene->gameObjectsList[i];
 
       UpdateGameObject(gameObject);
 
@@ -108,7 +110,8 @@ void *GameThread(void *windowIn) {
 
         // Calculate its projection to the camera & bind to shader
         mat4 mvpRes;
-        CalculateMVP(bindedCamera->renderCamera, gameObject->model, &mvpRes);
+        CalculateMVP(bindedScene->bindedCamera->renderCamera, gameObject->model,
+                     &mvpRes);
         UploadMVP(&mvpRes, bindedShader);
 
         // Finally draw it
@@ -146,11 +149,16 @@ void GameInit(const char *title, int width, int height) {
 
   glfwMakeContextCurrent(window);
 
-  glfwSetFramebufferSizeCallback(window, AutoResizeCallback);
+  glfwSetFramebufferSizeCallback(window, AutoResize);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     return;
   }
+
+  Scene defaultScene;
+  GameCamera defaultCam;
+
+  bindedScene = &defaultScene;
 
   pthread_t windowID;
   pthread_create(&windowID, NULL, GameThread, NULL);

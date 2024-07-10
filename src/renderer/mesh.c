@@ -84,46 +84,46 @@ void SetupGLBuffers(Mesh *mesh) {
   glBindVertexArray(0);
 }
 
-Vertex CreateVertex(float x, float y, float z, float texC1, float texC2) {
-  Vertex ret;
-  ret.position[0] = x;
-  ret.position[1] = y;
-  ret.position[2] = z;
+Vertex *CreateVertex(float x, float y, float z, float texC1, float texC2) {
+  Vertex *retVertex = (Vertex *)malloc(sizeof(Vertex));
+  retVertex->position[0] = x;
+  retVertex->position[1] = y;
+  retVertex->position[2] = z;
 
-  ret.texCoord[0] = texC1;
-  ret.texCoord[1] = texC2;
+  retVertex->texCoord[0] = texC1;
+  retVertex->texCoord[1] = texC2;
 
-  return ret;
+  return retVertex;
 }
 
-Mesh FbxToMesh(ufbx_mesh *mesh) {
+Mesh *FbxToMesh(ufbx_mesh *mesh) {
   // Init mesh
-  Mesh retMesh;
+  Mesh *retMesh = (Mesh *)malloc(sizeof(Mesh));
 
   // Initialize dynamic arrays
-  retMesh.vertList = (Vertex *)malloc(mesh->vertices.count * sizeof(Vertex));
-  retMesh.vertListCount = mesh->vertices.count;
-  retMesh.indicesList =
+  retMesh->vertList = (Vertex *)malloc(mesh->vertices.count * sizeof(Vertex));
+  retMesh->vertListCount = mesh->vertices.count;
+  retMesh->indicesList =
       (unsigned int *)malloc(mesh->vertex_indices.count * sizeof(unsigned int));
-  retMesh.indicesListCount = mesh->vertex_indices.count;
+  retMesh->indicesListCount = mesh->vertex_indices.count;
 
   // Transform each vertex
   for (size_t i = 0; i < mesh->vertices.count; i++) {
 
     // Transform vertex
     ufbx_vec3 curVertex = mesh->vertices.data[i];
-    Vertex transVertex = CreateVertex((float)curVertex.x, (float)curVertex.y,
-                                      (float)curVertex.z, 1.0f, 1.0f);
+    Vertex *transVertex = CreateVertex((float)curVertex.x, (float)curVertex.y,
+                                       (float)curVertex.z, 1.0f, 1.0f);
     // Assign vertex
-    retMesh.vertList[i] = transVertex;
+    retMesh->vertList[i] = *transVertex;
   }
 
   // Add indices
   for (size_t i = 0; i < mesh->vertex_indices.count; i++) {
-    retMesh.indicesList[i] = mesh->vertex_indices.data[i];
+    retMesh->indicesList[i] = mesh->vertex_indices.data[i];
   }
 
-  SetupGLBuffers(&retMesh);
+  SetupGLBuffers(retMesh);
 
   return retMesh;
 }

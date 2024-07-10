@@ -71,10 +71,10 @@ void SetupGLBuffers(Mesh *mesh);
 
 void DrawMesh(Mesh *mesh);
 
-Vertex CreateVertex(float x, float y, float z, float texC1, float texC2);
+Vertex *CreateVertex(float x, float y, float z, float texC1, float texC2);
 
 // Converts UFBX mesh to Kraine Mesh
-Mesh FbxToMesh(ufbx_mesh *mesh);
+Mesh *FbxToMesh(ufbx_mesh *mesh);
 
 /*
 ==============================================================================
@@ -95,9 +95,9 @@ typedef struct Model {
 
 void DrawModel(Model *model);
 
-Model LoadModelFBX(const char *path);
+Model *LoadModelFBX(const char *path);
 
-Model CreateModel();
+Model *CreateModel();
 
 /*
 ==============================================================================
@@ -123,7 +123,7 @@ typedef struct Camera {
   mat4 projection; // Projection matrix (By default its in perspective for 3D)
 } Camera;
 
-Camera CreateCamera();
+Camera *CreateCamera();
 
 /*
 ==============================================================================

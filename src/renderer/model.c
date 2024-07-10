@@ -49,15 +49,15 @@ void DrawModel(Model *model) {
   }
 }
 
-Model CreateModel() {
+Model *CreateModel() {
   // Initialize model and its values
-  Model retModel;
-  glm_mat4_identity(retModel.transform);
+  Model *retModel = (Model *)malloc(sizeof(Model));
+  glm_mat4_identity(retModel->transform);
 
   return retModel;
 }
 
-Model LoadModelFBX(const char *path) {
+Model *LoadModelFBX(const char *path) {
   printf("[DEBUG] : Loading 3D FBX Model from path: %s\n", path);
 
   // Load ufbx with default options
@@ -71,12 +71,11 @@ Model LoadModelFBX(const char *path) {
   if (!scene) {
     printf("[ERROR] : Error while trying to load fbx file -> %s\n",
            error.description.data);
-    Model error;
-    return error;
+    return 0;
   }
 
   // Create model for return
-  Model retModel = CreateModel();
+  Model *retModel = (Model *)malloc(sizeof(Model));
 
   // Count number of meshes
   int meshCount = 0;
@@ -91,8 +90,8 @@ Model LoadModelFBX(const char *path) {
   }
 
   // Allocate number of meshes
-  retModel.meshList = (Mesh *)malloc(meshCount * sizeof(Mesh));
-  retModel.meshListCount = meshCount;
+  retModel->meshList = (Mesh *)malloc(meshCount * sizeof(Mesh));
+  retModel->meshListCount = meshCount;
 
   meshCount = 0;
   for (size_t i = 0; i < scene->nodes.count; i++) {
@@ -103,18 +102,18 @@ Model LoadModelFBX(const char *path) {
     // Loop through each mesh
     if (node->mesh) {
       // Convert fbx mesh to kraine mesh
-      Mesh mesh = FbxToMesh(node->mesh);
-      retModel.meshList[meshCount] = mesh;
+      Mesh *mesh = FbxToMesh(node->mesh);
+      retModel->meshList[meshCount] = *mesh;
       meshCount++;
     }
   }
 
   // Set default coordinates (0,0,3)
   // FIXME: TF?? read below
-  glm_translate(retModel.transform, (vec3){0.0f, 0.0f, -43.0f});
+  glm_translate(retModel->transform, (vec3){0.0f, 0.0f, -43.0f});
 
   // Set its default size (1,1,1)
-  glm_scale(retModel.transform, (vec3){1.0f, 1.0f, 1.0f});
+  glm_scale(retModel->transform, (vec3){1.0f, 1.0f, 1.0f});
 
   return retModel;
 }

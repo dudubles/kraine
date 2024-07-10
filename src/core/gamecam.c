@@ -23,37 +23,11 @@
 */
 
 /*=================================================
-Path: renderer/camera.c
+Path: core/gamecam.c
 
-Date: 07/03/2024
+Date: 07/07/2024
 
 Author: Dudubles
 
 Description:
 =================================================*/
-
-#include "cglm/call.h"
-#include "cglm/cam.h"
-#include "cglm/types.h"
-#include "cglm/util.h"
-#include "cglm/vec3.h"
-#include "glad/glad.h"
-#include "kraine/renderer.h"
-
-Camera *CreateCamera() {
-
-  // Initialize camera and its values
-  Camera *retCam = (Camera *)malloc(sizeof(Camera));
-  glm_mat4_identity(retCam->projection);
-  glm_mat4_identity(retCam->view);
-
-  // Setup camera default projection
-  glm_perspective(glm_rad(45.0f), (float)1280 / (float)720, 0.1f, 100.0f,
-                  retCam->projection); // Setting up with 45.0 FOV and aspect
-                                       // ratio of 16:9 (1280 / 720)
-
-  // Setup camera default location (position: 0,0,0)
-  glm_translate(retCam->view, (vec3){0.0f, 0.0f, 0.0f});
-
-  return retCam;
-}

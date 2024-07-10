@@ -33,14 +33,31 @@ Description:  Object.c manages all the logic of
               gameobjects
 =================================================*/
 
-#include "cglm/call.h"
-#include "cglm/mat4.h"
-#include "cglm/types.h"
 #include "kraine/core.h"
 #include "kraine/renderer.h"
 #include "string.h"
 
-void UpdateTransform(GameObject *object);
+GameObject *GameObject3D(const char *path) {
+  GameObject *retGameObject = CreateGameObject(GAMEOBJECT_3D);
+  retGameObject->model = LoadModelFBX(path);
+}
+
+GameObject *CreateGameObject(unsigned int type) {
+
+  GameObject *retGameObject = (GameObject *)malloc(sizeof(GameObject));
+  retGameObject->type = type;
+
+  if (type == GAMEOBJECT_CUSTOM) {
+    return retGameObject;
+  }
+
+  if (type == GAMEOBJECT_3D) {
+    Transform *transform = TemplateTransform(0, 0, 0);
+    retGameObject->transform = transform;
+
+    return retGameObject;
+  }
+}
 
 void DestroyGameObject() {
   // TODO: DestroyGameObject
@@ -55,52 +72,4 @@ void UpdateGameObject(GameObject *object) {
     // Update its position, rotation and scale
     UpdateTransform(object);
   }
-}
-
-void UpdateTransform(GameObject *object) {
-
-  // Initialize result variable
-  mat4 transformRes;
-  glm_mat4_identity(transformRes);
-
-  // Update position
-  glm_translate(transformRes, (vec3){
-                                  object->transform->position.x,
-                                  object->transform->position.y,
-                                  object->transform->position.z,
-                              });
-
-  // Update rotation angle on X axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.x),
-             (vec3){
-                 1.0f,
-                 0.0f,
-                 0.0f,
-             });
-
-  // Update rotation angle on Y axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.y),
-             (vec3){
-                 0.0f,
-                 1.0f,
-                 0.0f,
-             });
-
-  // Update rotation angle on Z axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.z),
-             (vec3){
-                 0.0f,
-                 0.0f,
-                 1.0f,
-             });
-
-  // Update its scale
-  glm_scale(transformRes, (vec3){
-                              object->transform->scale.x,
-                              object->transform->scale.y,
-                              object->transform->scale.z,
-                          });
-
-  // Store result inside model (basically update it)
-  memcpy(object->model->transform, transformRes, sizeof(transformRes));
 }
