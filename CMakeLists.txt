@@ -9,20 +9,32 @@ project("Kraine")
 # =================================== TESTING ===================================
 add_executable(test 
   ${PROJECT_SOURCE_DIR}/src/main.c
-  ${PROJECT_SOURCE_DIR}/src/glad.c
+
+  # Renderer
   ${PROJECT_SOURCE_DIR}/src/renderer/shader.c
   ${PROJECT_SOURCE_DIR}/src/renderer/texture.c
   ${PROJECT_SOURCE_DIR}/src/renderer/mesh.c
   ${PROJECT_SOURCE_DIR}/src/renderer/model.c
-  ${PROJECT_SOURCE_DIR}/src/renderer/camera.c
   ${PROJECT_SOURCE_DIR}/src/renderer/coords.c
+
+  # Utils
   ${PROJECT_SOURCE_DIR}/src/utils/files.c
+
+  # Core
+  ${PROJECT_SOURCE_DIR}/src/core/game.c
+  ${PROJECT_SOURCE_DIR}/src/core/gameobj.c
+  ${PROJECT_SOURCE_DIR}/src/core/gamecam.c
+  ${PROJECT_SOURCE_DIR}/src/core/scene.c
+  ${PROJECT_SOURCE_DIR}/src/core/transform.c
+
+  #Libs
+  ${PROJECT_SOURCE_DIR}/src/glad.c
+
 )
 target_include_directories(test PUBLIC ${PROJECT_SOURCE_DIR}/include/)
 
 target_link_libraries(test 
   ${PROJECT_SOURCE_DIR}/lib/libglfw3.a 
-  ${PROJECT_SOURCE_DIR}/lib/cglm.lib
   ${PROJECT_SOURCE_DIR}/lib/libufbx.a
 )
 

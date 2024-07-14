@@ -44,12 +44,7 @@ Transform Components
 ==============================================================================
 */
 
-typedef struct Vector3 {
-
-  // Properties
-  float x, y, z;
-
-} Vector3;
+typedef float Vector3[3];
 
 typedef struct Transform {
 
@@ -60,7 +55,11 @@ typedef struct Transform {
 
 } Transform;
 
-Transform *TemplateTransform(int x, int y, int z);
+void InitTransform(Transform *dest);
+
+void SetupTransform(Transform *dest);
+
+void GetTransformMat(Transform *transform, mat4 *dest);
 
 /*
 ==============================================================================
@@ -84,15 +83,15 @@ typedef struct GameObject {
 
 } GameObject;
 
-GameObject *CreateGameObject(unsigned int type);
+void InitGameObject(unsigned int type, GameObject *dest);
 
-GameObject *GameObject3D(const char *path);
-
-void UpdateTransform(GameObject *object); // Defined in transform.c
+void SetupGameObject(unsigned int type, GameObject *dest);
 
 void UpdateGameObject(GameObject *object);
 
 void DestroyGameObject(GameObject *object);
+
+void GameObject3D(const char *path, GameObject *dest);
 
 /*
 ==============================================================================
@@ -107,15 +106,18 @@ Game Camera
 typedef struct GameCamera {
 
   // Components
-  Camera *renderCamera;
-  Transform *transform;
+  Transform transform;
 
   // Properties
   unsigned int projection;
 
 } GameCamera;
 
-GameCamera *CreateGameCamera(unsigned int projection);
+void InitGameCamera(GameCamera *dest);
+
+void SetupGameCamera(unsigned int projection, GameCamera *dest);
+
+void GetProjectionMat(GameCamera *camera, mat4 *dest);
 
 void UpdateGameCamera(GameCamera *camera);
 
@@ -137,12 +139,21 @@ typedef struct Scene {
 
   // Dynamic arrays
 
-  GameObject *gameObjectsList;
+  GameObject **gameObjectsList; // List of pointers to gameobjects
   int gameObjectsIndex;
 
 } Scene;
 
-void AddToScene(GameObject *gameObject);
+// CreateScene creates a default scene wich by default
+// provides a 3D Perspective camera.
+
+void InitScene(Scene *dest);
+
+void SetupScene(Scene *dest);
+
+void AddToScene(Scene *scene, GameObject *gameObject);
+
+void DestroyScene(Scene *scene);
 
 /*
 ==============================================================================
@@ -152,7 +163,20 @@ Game logic
 ==============================================================================
 */
 
+// GameInit Initializes the game and waits for it to be exit
 void GameInit(const char *title, int width, int height);
+
+// OnUpdate takes a pointer to a void function and calls
+// it on each frame once game is initialized
+void OnUpdate(void *function);
+
+// OnStart takes a pointer to a void function and calls
+// it before the game is fully initialized
+void OnStart(void *function);
+
+void BindScene(Scene *scene);
+
+void BindShader(unsigned int shader);
 
 //============================================================================
 

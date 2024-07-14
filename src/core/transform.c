@@ -32,79 +32,43 @@ author: dudubles
 description:
 =================================================*/
 
-#include "cglm/cglm.h"
 #include "kraine/core.h"
+#include <stdlib.h>
+#include <string.h>
 
-Transform *TemplateTransform(int x, int y, int z) {
+void InitTransform(Transform *dest) {
+  // Do nothing
+  dest->position[0] = 0.0f;
+  dest->position[1] = 0.0f;
+  dest->position[2] = 0.0f;
 
-  Vector3 position;
-  position.x = 0;
-  position.y = 0;
-  position.z = 0;
+  dest->rotation[0] = 0.0f;
+  dest->rotation[1] = 0.0f;
+  dest->rotation[2] = 0.0f;
 
-  Vector3 rotation;
-  rotation.x = 0;
-  rotation.y = 0;
-  rotation.z = 0;
-
-  Vector3 scale;
-  scale.x = 0;
-  scale.y = 0;
-  scale.z = 0;
-
-  Transform *retTransform = (Transform *)malloc(sizeof(Transform));
-
-  retTransform->position = position;
-  retTransform->rotation = rotation;
-  retTransform->scale = scale;
-
-  return retTransform;
+  dest->scale[0] = 100.0f;
+  dest->scale[1] = 100.0f;
+  dest->scale[2] = 100.0f;
 }
 
-void UpdateTransform(GameObject *object) {
+void SetupTransform(Transform *dest) {
 
-  // Initialize result variable
-  mat4 transformRes;
-  glm_mat4_identity(transformRes);
+  // Setup default values
+}
 
-  // Update position
-  glm_translate(transformRes, (vec3){
-                                  object->transform->position.x,
-                                  object->transform->position.y,
-                                  object->transform->position.z,
-                              });
+void GetTransformMat(Transform *transform, mat4 *dest) {
 
-  // Update rotation angle on X axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.x),
-             (vec3){
-                 1.0f,
-                 0.0f,
-                 0.0f,
-             });
+  // Position
+  glm_translate(*dest, transform->position);
 
-  // Update rotation angle on Y axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.y),
-             (vec3){
-                 0.0f,
-                 1.0f,
-                 0.0f,
-             });
+  // Rotation
+  glm_rotate(*dest, transform->rotation[2],
+             (vec3){0, 0, 1}); // Rotate around z-axis
+  glm_rotate(*dest, transform->rotation[1],
+             (vec3){0, 1, 0}); // Rotate around y-axis
+  glm_rotate(*dest, transform->rotation[0],
+             (vec3){1, 0, 0}); // Rotate around x-axis
 
-  // Update rotation angle on Z axis
-  glm_rotate(transformRes, glm_rad(object->transform->rotation.z),
-             (vec3){
-                 0.0f,
-                 0.0f,
-                 1.0f,
-             });
-
-  // Update its scale
-  glm_scale(transformRes, (vec3){
-                              object->transform->scale.x,
-                              object->transform->scale.y,
-                              object->transform->scale.z,
-                          });
-
-  // Store result inside model (basically update it)
-  memcpy(object->model->transform, transformRes, sizeof(transformRes));
+  // Scale
+  glm_scale(*dest, transform->scale);
 }

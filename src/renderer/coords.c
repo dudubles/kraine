@@ -32,30 +32,19 @@ Author: Dudubles
 Description:
 =================================================*/
 
-#include "cglm/mat4.h"
 #include "glad/glad.h"
 #include "kraine/renderer.h"
+#include <cglm/call.h>
+#include <cglm/cglm.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 
-void CalculateMVP(Camera *camera, Model *model, mat4 *dest) {
-
-  // Calculate mvp (projection matrix * view matrix * model matrix)
-  mat4 mvp;
-  glm_mat4_mulN(
-      (mat4 *[]){
-          &camera->projection,
-          &camera->view,
-          &model->transform,
-      },
-      3, mvp);
-
-  // Insert the return value in dest
-  memcpy(dest, &mvp, sizeof(mvp));
+void CalculateMVP(mat4 *projection, mat4 *view, mat4 *model, mat4 *dest) {
+  glm_mat4_mul(*projection, *view, *dest);
+  glm_mat4_mul(*dest, *model, *dest);
 }
 
 void UploadMVP(mat4 *mvp, unsigned int shader) {
-
   // Get uniform location
   int mvpLoc = glGetUniformLocation(shader, "mvp");
 

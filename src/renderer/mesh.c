@@ -38,12 +38,34 @@ Description:
 #include "ufbx.h"
 #include <stdlib.h>
 
+void InitMesh(Mesh *dest) {
+  Mesh res;
+
+  // Initialize values
+  res.texture = 0;
+  res.indicesListCount = 0;
+  res.vertListCount = 0;
+  res.EBO = 0;
+  res.VBO = 0;
+  res.VAO = 0;
+
+  // Initialize dinamyc arrays
+  res.indicesList = (unsigned int *)malloc(sizeof(unsigned int));
+  res.vertList = (Vertex *)malloc(sizeof(Vertex));
+
+  memcpy(dest, &res, sizeof(Mesh));
+}
+
 void DrawMesh(Mesh *mesh) {
 
   // Debugging
   if (mesh->vertListCount <= 0) {
     printf("[ERROR] : Trying to draw mesh with 0 vertices result ignored\n");
     return;
+  }
+
+  if (mesh->texture != 0) {
+    glBindTexture(GL_TEXTURE_2D, mesh->texture);
   }
 
   glBindVertexArray(mesh->VAO);
@@ -84,46 +106,56 @@ void SetupGLBuffers(Mesh *mesh) {
   glBindVertexArray(0);
 }
 
-Vertex *CreateVertex(float x, float y, float z, float texC1, float texC2) {
-  Vertex *retVertex = (Vertex *)malloc(sizeof(Vertex));
-  retVertex->position[0] = x;
-  retVertex->position[1] = y;
-  retVertex->position[2] = z;
+void InitVertex(Vertex *dest) {
+  Vertex res;
 
-  retVertex->texCoord[0] = texC1;
-  retVertex->texCoord[1] = texC2;
+  // Initialize values
+  res.position[0] = 0.0f;
+  res.position[1] = 0.0f;
+  res.position[2] = 0.0f;
+  res.texCoord[0] = 0.0f;
+  res.texCoord[1] = 0.0f;
 
-  return retVertex;
-}
+  memcpy(dest, &res, sizeof(Vertex));
+};
 
-Mesh *FbxToMesh(ufbx_mesh *mesh) {
-  // Init mesh
-  Mesh *retMesh = (Mesh *)malloc(sizeof(Mesh));
+void SetupVertex(float x, float y, float z, float texC1, float texC2,
+                 Vertex *dest) {
+  dest->position[0] = x;
+  dest->position[1] = y;
+  dest->position[2] = z;
 
+  dest->texCoord[0] = texC1;
+  dest->texCoord[1] = texC2;
+};
+
+void FbxToMesh(ufbx_mesh *mesh, Mesh *dest) {
   // Initialize dynamic arrays
-  retMesh->vertList = (Vertex *)malloc(mesh->vertices.count * sizeof(Vertex));
-  retMesh->vertListCount = mesh->vertices.count;
-  retMesh->indicesList =
-      (unsigned int *)malloc(mesh->vertex_indices.count * sizeof(unsigned int));
-  retMesh->indicesListCount = mesh->vertex_indices.count;
+  dest->vertList =
+      (Vertex *)realloc(dest->vertList, mesh->vertices.count * sizeof(Vertex));
+  dest->vertListCount = mesh->vertices.count;
+  dest->indicesList = (unsigned int *)realloc(
+      dest->indicesList, mesh->vertex_indices.count * sizeof(unsigned int));
+  dest->indicesListCount = mesh->vertex_indices.count;
 
   // Transform each vertex
   for (size_t i = 0; i < mesh->vertices.count; i++) {
 
     // Transform vertex
     ufbx_vec3 curVertex = mesh->vertices.data[i];
-    Vertex *transVertex = CreateVertex((float)curVertex.x, (float)curVertex.y,
-                                       (float)curVertex.z, 1.0f, 1.0f);
+    Vertex transVertex;
+    InitVertex(&transVertex);
+    SetupVertex((float)curVertex.x, (float)curVertex.y, (float)curVertex.z,
+                curVertex.v[0], curVertex.v[1], &transVertex);
+
     // Assign vertex
-    retMesh->vertList[i] = *transVertex;
+    dest->vertList[i] = transVertex;
   }
 
   // Add indices
   for (size_t i = 0; i < mesh->vertex_indices.count; i++) {
-    retMesh->indicesList[i] = mesh->vertex_indices.data[i];
+    dest->indicesList[i] = mesh->vertex_indices.data[i];
   }
 
-  SetupGLBuffers(retMesh);
-
-  return retMesh;
+  SetupGLBuffers(dest);
 }

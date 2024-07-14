@@ -32,32 +32,36 @@ Author: Dudubles
 Description:
 =================================================*/
 
-#include "cglm/affine.h"
-#include "cglm/call.h"
-#include "cglm/mat4.h"
 #include "glad/glad.h"
 #include "kraine/renderer.h"
 #include "ufbx.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void DrawModel(Model *model) {
 
   // Draw each mesh
   for (size_t i = 0; i < model->meshListCount; i++) {
-    Mesh *mesh = &model->meshList[0];
-    DrawMesh(mesh);
+    DrawMesh(model->meshList[i]);
   }
 }
 
-Model *CreateModel() {
-  // Initialize model and its values
-  Model *retModel = (Model *)malloc(sizeof(Model));
-  glm_mat4_identity(retModel->transform);
+void InitModel(Model *dest) {
+  Model res;
 
-  return retModel;
-}
+  // Initialize dinamyc arrays
+  res.meshList = (Mesh **)malloc(sizeof(Mesh));
+  res.meshListCount = 0;
 
-Model *LoadModelFBX(const char *path) {
+  memcpy(dest, &res, sizeof(Model));
+};
+
+void SetupModel(Model *dest) {
+  // Do nothing
+};
+
+void LoadModelFBX(const char *path, Model *dest) {
   printf("[DEBUG] : Loading 3D FBX Model from path: %s\n", path);
 
   // Load ufbx with default options
@@ -71,11 +75,7 @@ Model *LoadModelFBX(const char *path) {
   if (!scene) {
     printf("[ERROR] : Error while trying to load fbx file -> %s\n",
            error.description.data);
-    return 0;
   }
-
-  // Create model for return
-  Model *retModel = (Model *)malloc(sizeof(Model));
 
   // Count number of meshes
   int meshCount = 0;
@@ -89,9 +89,9 @@ Model *LoadModelFBX(const char *path) {
     }
   }
 
-  // Allocate number of meshes
-  retModel->meshList = (Mesh *)malloc(meshCount * sizeof(Mesh));
-  retModel->meshListCount = meshCount;
+  // Reallocate number of meshes
+  dest->meshList = (Mesh **)realloc(dest->meshList, meshCount * sizeof(Mesh *));
+  dest->meshListCount = meshCount;
 
   meshCount = 0;
   for (size_t i = 0; i < scene->nodes.count; i++) {
@@ -101,19 +101,14 @@ Model *LoadModelFBX(const char *path) {
 
     // Loop through each mesh
     if (node->mesh) {
+
       // Convert fbx mesh to kraine mesh
-      Mesh *mesh = FbxToMesh(node->mesh);
-      retModel->meshList[meshCount] = *mesh;
+      Mesh *resMesh = (Mesh *)malloc(sizeof(Mesh));
+      InitMesh(resMesh);
+      FbxToMesh(node->mesh, resMesh);
+
+      dest->meshList[meshCount] = resMesh;
       meshCount++;
     }
   }
-
-  // Set default coordinates (0,0,3)
-  // FIXME: TF?? read below
-  glm_translate(retModel->transform, (vec3){0.0f, 0.0f, -43.0f});
-
-  // Set its default size (1,1,1)
-  glm_scale(retModel->transform, (vec3){1.0f, 1.0f, 1.0f});
-
-  return retModel;
 }

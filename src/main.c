@@ -32,95 +32,46 @@ Author: Dudubles
 Description: This is just to test some shi
 =================================================*/
 
-#include <glad/glad.h>
-// Fuck you clangd
+#include "kraine/core.h"
 #include "kraine/renderer.h"
-#include <GLFW/glfw3.h>
-#include <cglm/call.h>
 #include <stdio.h>
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+Scene newscene;
+GameObject model;
 
-int main() {
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+void start() {
+  printf("Game Started\n");
 
-  GLFWwindow *window =
-      glfwCreateWindow(800, 600, "Kraine Engine [TEST]", NULL, NULL);
-  if (window == NULL) {
-    glfwTerminate();
-    return -1;
-  }
-  glfwMakeContextCurrent(window);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  // Create new scene
+  InitScene(&newscene);
+  SetupScene(&newscene);
+  BindScene(&newscene);
+  newscene.bindedCamera->transform.position[2] = -10.0f;
 
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    return -1;
-  }
+  // Create game object
+  InitGameObject(GAMEOBJECT_3D, &model);
+  SetupGameObject(GAMEOBJECT_3D, &model);
+  GameObject3D("C:/Users/tiago/Desktop/Kraine/resource/assets/horse.fbx",
+               &model);
 
-  unsigned int shaderProgram = ShaderFromFiles(
-      "c:/users/tiago/desktop/kraine/resource/shader/vertex.glsl",
-      "C:/Users/tiago/Desktop/Kraine/resource/shader/fragment.glsl");
+  unsigned int texture = LoadTexFromFile(
+      (char *)"C:/Users/tiago/Desktop/Kraine/resource/assets/225CE9.png");
+  model.model->meshList[0]->texture = texture;
 
-  unsigned int myTexture = LoadTexFromFile(
-      (char *)"c:/users/tiago/desktop/kraine/resource/textures/wall.jpg");
-
-  Model cubex =
-      LoadModelFBX("c:/users/tiago/desktop/kraine/resource/assets/sample.fbx");
-
-  Model cubex2 =
-      LoadModelFBX("c:/users/tiago/desktop/kraine/resource/assets/sample.fbx");
-
-  Camera cam = CreateCamera();
-
-  glUseProgram(shaderProgram);
-
-  glEnable(GL_DEPTH_TEST); // Enable depth
-  glfwSwapInterval(
-      1); // enably vsync so it doesnt take up 50% cpu (also smooth draw calls)
-
-  float scale = 8.1f;
-  glm_scale(cubex.transform, (vec3){scale, scale, scale});
-
-  glm_scale(cubex2.transform, (vec3){scale, scale, scale});
-
-  glm_rotate(cubex.transform, glm_rad(-180.0f), (vec3){0.0f, 1.0f, 1.0f});
-
-  mat4 mvp;
-  while (!glfwWindowShouldClose(window)) {
-    glm_rotate(cubex.transform, glm_rad(0.03f * 50.0f),
-               (vec3){0.0f, 0.0f, 1.0f});
-
-    CalculateMVP(&cam, &cubex, &mvp);
-    UploadMVP(&mvp, shaderProgram);
-
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindTexture(GL_TEXTURE_2D, myTexture);
-    CalculateMVP(&cam, &cubex, &mvp);
-    UploadMVP(&mvp, shaderProgram);
-    DrawModel(&cubex);
-
-    CalculateMVP(&cam, &cubex2, &mvp);
-    UploadMVP(&mvp, shaderProgram);
-    DrawModel(&cubex2);
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
-
-  /* TEST: glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
-  glDeleteBuffers(1, &EBO);*/
-  glDeleteProgram(shaderProgram);
-
-  glfwTerminate();
-  return 0;
+  // Add game object to the Scene
+  AddToScene(&newscene, &model);
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
+void update() {
+  model.transform->rotation[2] = 90.0f;
+  model.transform->position[2] = -100000.0f;
+}
+
+int main(int argc, char *argv[]) {
+
+  OnUpdate((void *)&update);
+  OnStart((void *)&start);
+
+  GameInit("Kraine Engine [Test]", 800, 600);
+  return 0;
 }

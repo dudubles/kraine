@@ -34,23 +34,30 @@ Description: game.c manages all the game logic
 
 #include <glad/glad.h>
 // CLangd ... omg
+#include "cglm/mat4.h"
 #include "kraine/core.h"
 #include "kraine/renderer.h"
 #include <GLFW/glfw3.h>
-#include <cglm/call.h>
-#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 ==============================================================================
 
-Typedefs & vars
+Typedefs & vars & runtime vars
 
 ==============================================================================
 */
 
-unsigned int initialized = 0;
+bool running = 0;
 
 typedef void (*callback)(void);
+
+// mvp calculation vars
+mat4 rtView;
+mat4 rtProj;
+mat4 rtModel;
+mat4 mvpRes;
 
 /*
 ==============================================================================
@@ -75,65 +82,23 @@ Gamedev control (callbacks)
 callback *onUpdateCallbackList;
 int onUpdateCallbackIndex;
 
+callback *onStartCallbackList;
+int onStartCallbackIndex;
+
 //============================================================================
+
+void TryDrawScene();
 
 void AutoResize(GLFWwindow *window, int width, int height);
 
-void *GameThread(void *windowIn) {
-
-  GLFWwindow *window = (GLFWwindow *)windowIn; // Cast type to glfwwindow
-
-  while (!glfwWindowShouldClose(window)) {
-
-    // Call every OnUpdate() function
-    for (size_t i = 0; i < onUpdateCallbackIndex; i++) {
-      onUpdateCallbackList[i]();
-    }
-
-    // Check if scene can be drawn
-    if (bindedScene->bindedCamera == NULL) {
-      continue;
-    }
-
-    // Clear screen and then update & draw each gameobject using the binded
-    // camera & shaders
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    for (size_t i = 0; i < bindedScene->gameObjectsIndex; i++) {
-      GameObject *gameObject = &bindedScene->gameObjectsList[i];
-
-      UpdateGameObject(gameObject);
-
-      // Check if gameObject can be drawn.
-      if (gameObject->transform != NULL && gameObject->model != NULL) {
-
-        // Calculate its projection to the camera & bind to shader
-        mat4 mvpRes;
-        CalculateMVP(bindedScene->bindedCamera->renderCamera, gameObject->model,
-                     &mvpRes);
-        UploadMVP(&mvpRes, bindedShader);
-
-        // Finally draw it
-        DrawModel(gameObject->model);
-      }
-    }
-
-    // End of new frame
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
-
-  glfwTerminate();
-  return 0;
-}
-
 void GameInit(const char *title, int width, int height) {
 
-  if (initialized == 1) {
+  // Check if game is already running
+  if (running == true) {
     return;
   }
 
+  // Load window
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -155,14 +120,131 @@ void GameInit(const char *title, int width, int height) {
     return;
   }
 
-  Scene defaultScene;
-  GameCamera defaultCam;
+  // Setup default shaders
+  // FIXME: For testing we are using a whole path of my pc.
+  BindShader(ShaderFromFiles(
+      "c:/users/tiago/desktop/kraine/resource/shader/vertex.glsl",
+      "C:/Users/tiago/Desktop/Kraine/resource/shader/fragment.glsl"));
 
-  bindedScene = &defaultScene;
+  // Call every OnStart() function
+  if (onStartCallbackIndex > 0) {
+    for (size_t i = 0; i < onStartCallbackIndex; i++) {
+      onStartCallbackList[i]();
+    }
+  }
 
-  pthread_t windowID;
-  pthread_create(&windowID, NULL, GameThread, NULL);
-  pthread_detach(windowID);
+  // Run game thread
+  while (!glfwWindowShouldClose((GLFWwindow *)window)) {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  initialized = 1;
+    // Call every OnUpdate() function
+    if (onUpdateCallbackIndex > 0) {
+      for (size_t i = 0; i < onUpdateCallbackIndex; i++) {
+        onUpdateCallbackList[i]();
+      }
+    }
+
+    // Draw scene
+    TryDrawScene();
+
+    // End of new frame
+    glfwSwapBuffers((GLFWwindow *)window);
+    glfwPollEvents();
+  }
+
+  // Terminate window
+  glfwTerminate();
+
+  // Terminate Game
+  running = false;
+
+  return;
+}
+
+void TryDrawScene() {
+
+  // Check if thers a binded scene
+  if (bindedScene == NULL) {
+    return;
+  }
+
+  // Check if scene can be drawn
+  if (bindedScene->bindedCamera == NULL) {
+    return;
+  }
+
+  // Check if theres even anything to draw
+  if (bindedScene->gameObjectsIndex <= 0) {
+    return;
+  }
+
+  // Update camera
+  UpdateGameCamera(bindedScene->bindedCamera);
+
+  // Reset mvp matrices
+  glm_mat4_identity(rtModel);
+  glm_mat4_identity(rtView);
+  glm_mat4_identity(rtProj);
+  glm_mat4_identity(mvpRes);
+
+  // Get camera values for rendering
+  GetTransformMat(&bindedScene->bindedCamera->transform, &rtView);
+  glm_mat4_inv(rtView, rtView);
+  GetProjectionMat(bindedScene->bindedCamera, &rtProj);
+
+  // update & draw each gameobject using the binded shader & camera
+  glUseProgram(bindedShader);
+
+  for (size_t i = 0; i < bindedScene->gameObjectsIndex; i++) {
+    GameObject *gameObject = bindedScene->gameObjectsList[i];
+    if (gameObject == NULL) {
+      continue;
+    }
+
+    UpdateGameObject(gameObject);
+
+    // Check if gameObject can be drawn.
+    if (gameObject->transform != NULL && gameObject->model != NULL) {
+
+      // Calculate its projection to the camera & bind to shader
+      GetTransformMat(gameObject->transform, &rtModel);
+      CalculateMVP(&rtProj, &rtView, &rtModel, &mvpRes);
+      UploadMVP(&mvpRes, bindedShader);
+
+      // Finally draw it
+      DrawModel(gameObject->model);
+    }
+  }
+}
+
+void OnUpdate(void *function) {
+  callback func = (callback)function;
+  onUpdateCallbackIndex++;
+
+  onUpdateCallbackList = (callback *)realloc(
+      onUpdateCallbackList, onUpdateCallbackIndex * sizeof(callback));
+
+  onUpdateCallbackList[onUpdateCallbackIndex - 1] = func;
+}
+
+void OnStart(void *function) {
+  callback func = (callback)function;
+  onStartCallbackIndex++;
+
+  onStartCallbackList = (callback *)realloc(
+      onStartCallbackList, onStartCallbackIndex * sizeof(callback));
+
+  onStartCallbackList[onStartCallbackIndex - 1] = func;
+}
+
+void BindShader(unsigned int shader) {
+  bindedShader = shader;
+  glUseProgram(bindedShader);
+}
+
+void BindScene(Scene *scene) { bindedScene = scene; }
+
+void AutoResize(GLFWwindow *window, int width, int height) {
+  glViewport(0, 0, width, height);
 }

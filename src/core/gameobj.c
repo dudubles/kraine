@@ -37,39 +37,41 @@ Description:  Object.c manages all the logic of
 #include "kraine/renderer.h"
 #include "string.h"
 
-GameObject *GameObject3D(const char *path) {
-  GameObject *retGameObject = CreateGameObject(GAMEOBJECT_3D);
-  retGameObject->model = LoadModelFBX(path);
-}
+void InitGameObject(unsigned int type, GameObject *dest) {
+  GameObject res;
 
-GameObject *CreateGameObject(unsigned int type) {
+  // Initialize values
+  res.type = type;
 
-  GameObject *retGameObject = (GameObject *)malloc(sizeof(GameObject));
-  retGameObject->type = type;
-
-  if (type == GAMEOBJECT_CUSTOM) {
-    return retGameObject;
-  }
-
+  // Initialize optional values
   if (type == GAMEOBJECT_3D) {
-    Transform *transform = TemplateTransform(0, 0, 0);
-    retGameObject->transform = transform;
+    res.transform = (Transform *)malloc(sizeof(Transform));
+    res.model = (Model *)malloc(sizeof(Model));
 
-    return retGameObject;
+    InitTransform(res.transform);
+    InitModel(res.model);
+  }
+
+  memcpy(dest, &res, sizeof(GameObject));
+};
+
+void SetupGameObject(unsigned int type, GameObject *dest) {
+  if (type == GAMEOBJECT_3D) {
+    SetupTransform(dest->transform);
+    SetupModel(dest->model);
   }
 }
 
-void DestroyGameObject() {
+void GameObject3D(const char *path, GameObject *dest) {
+
+  // Create game object
+  LoadModelFBX(path, dest->model);
+}
+
+void DestroyGameObject(GameObject *object) {
   // TODO: DestroyGameObject
 }
 
 void UpdateGameObject(GameObject *object) {
-
-  // Check if the object can be drawn, if so update everything needed to draw
-  // (THIS DOESNT DRAW IT)
-  if (object->model != NULL) {
-
-    // Update its position, rotation and scale
-    UpdateTransform(object);
-  }
+  // TODO: UpdateGameObject
 }

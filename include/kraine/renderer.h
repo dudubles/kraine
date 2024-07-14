@@ -34,8 +34,8 @@ Description:
 
 #pragma once
 
-#include "cglm/types.h"
 #include "ufbx.h"
+#include <cglm/cglm.h>
 
 #ifndef KRAINE_RENDERER
 
@@ -53,7 +53,15 @@ typedef struct Vertex {
   float texCoord[2];
 } Vertex;
 
+void InitVertex(Vertex *dest);
+
+void SetupVertex(float x, float y, float z, float texC1, float texC2,
+                 Vertex *dest);
+
 typedef struct Mesh {
+
+  // Properties
+  unsigned int texture;
 
   // Dynamic arrays
   Vertex *vertList;
@@ -67,14 +75,14 @@ typedef struct Mesh {
   unsigned int EBO;
 } Mesh;
 
+void InitMesh(Mesh *mesh);
+
 void SetupGLBuffers(Mesh *mesh);
 
 void DrawMesh(Mesh *mesh);
 
-Vertex *CreateVertex(float x, float y, float z, float texC1, float texC2);
-
 // Converts UFBX mesh to Kraine Mesh
-Mesh *FbxToMesh(ufbx_mesh *mesh);
+void FbxToMesh(ufbx_mesh *mesh, Mesh *dest);
 
 /*
 ==============================================================================
@@ -87,17 +95,18 @@ Models
 typedef struct Model {
 
   // Dynamic arrays
-  Mesh *meshList;
+  Mesh **meshList;
   int meshListCount;
 
-  mat4 transform; // Model space transform matrix (Move, rotate etc...)
 } Model;
+
+void InitModel(Model *dest);
+
+void SetupModel(Model *dest);
 
 void DrawModel(Model *model);
 
-Model *LoadModelFBX(const char *path);
-
-Model *CreateModel();
+void LoadModelFBX(const char *path, Model *dest);
 
 /*
 ==============================================================================
@@ -108,22 +117,6 @@ Textures
 */
 
 unsigned int LoadTexFromFile(char *path);
-
-/*
-==============================================================================
-
-Camera
-
-==============================================================================
-*/
-
-typedef struct Camera {
-
-  mat4 view;       // Camera space transform matrix (Move, rotate etc...)
-  mat4 projection; // Projection matrix (By default its in perspective for 3D)
-} Camera;
-
-Camera *CreateCamera();
 
 /*
 ==============================================================================
@@ -143,9 +136,9 @@ Coordinates System
 ==============================================================================
 */
 
-void CalculateMVP(Camera *camera, Model *model, mat4 *dest);
+void CalculateMVP(mat4 *projection, mat4 *view, mat4 *model, mat4 *dest);
 
-void UploadMVP(mat4 *pvm, unsigned int shader);
+void UploadMVP(mat4 *mvp, unsigned int shader);
 
 //============================================================================
 

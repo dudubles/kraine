@@ -31,3 +31,34 @@ Author: Dudubles
 
 Description:
 =================================================*/
+
+#include "cglm/mat4.h"
+#include "kraine/core.h"
+#include <stdlib.h>
+
+void InitGameCamera(GameCamera *dest) {
+  GameCamera res;
+
+  // Initialize values
+  InitTransform(&res.transform);
+  res.projection = 0;
+
+  memcpy(dest, &res, sizeof(GameCamera));
+};
+
+void SetupGameCamera(unsigned int projection, GameCamera *dest) {
+  dest->projection = projection;
+  SetupTransform(&dest->transform);
+};
+
+void GetProjectionMat(GameCamera *camera, mat4 *dest) {
+
+  if (camera->projection == GAMECAMERA_PERSPECTIVE) {
+    // FIXME: Default values below
+    glm_perspective(45.0f, (float)1280 / (float)720, 0.1f, 100.0f, *dest);
+  }
+}
+
+void UpdateGameCamera(GameCamera *camera) {
+  // TODO: UpdateGameCamera
+}
